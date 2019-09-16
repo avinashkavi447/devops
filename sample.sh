@@ -9,4 +9,4 @@ printf "hello word"
  # \n - used for second line 
 echo -e "this is the new code of line\t\t\tthis is mycode"
 
- echo -e "\e[31m this is new line
+ echo -e "\e[31m this is new line"

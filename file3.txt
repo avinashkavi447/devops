@@ -1,0 +1,16 @@
+this is she bang
+sd
+sks
+echo helloworld
+printf 'hellow world'
+echo -e 'firstline/nNewline'
+echo -e "one\t\t\ttwo"
+# colour              background           foreground
+# red                   31                 41 
+# green                 31
+# yellow                33
+# blue                  34
+# magneta               35
+# cyan                  36                    46
+## colour colour enabling in echo will be done by \e
+echo -e "\e[31m content"

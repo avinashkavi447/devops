@@ -1,0 +1,58 @@
+#!/bin/bash
+
+ case $STATE in
+	STOP)  status1=$(aws ec2 describe-instance-status --instance-id i-07268b6e3e7e5c427|grep -wc 'running')
+           status2=$(aws ec2 describe-instance-status --instance-id i-0273a278a54fcef61|grep -wc 'running')
+	       mongo=$(atlascli -l | grep qa-prime-db-aws | grep -wc 'running')
+           running=1
+           if [[ "$running" == "$status1" || "$running" == "$mongo" || "$running" == "$status2" ]]
+           then 
+            {
+             echo "Stopping KONG Instance"
+             ssh insider-kong 'docker stop qa-prime-kong'
+             echo "KONG is stopped"
+
+             echo "Stopping Apps Instance"
+             aws ec2 stop-instances --instance-ids i-07268b6e3e7e5c427
+             aws ec2 stop-instances --instance-ids i-0273a278a54fcef61
+             echo "Apps Instance is stopped"
+  
+             echo "Stopping Mongodb Instance"
+             atlascli --publickey $ATLAS_PUBLIC_KEY --privatekey $ATLAS_PRIVATE_KEY --project_id 61785c7271cd415675fbbf72 --pause qa-prime-db-aws
+             echo "Mongodb Instance is stopped"
+    
+             echo "Qa-prime is down now"
+            }
+           else
+            echo "Instances are not running to stop"    
+           fi    
+		;;
+  START)   echo "Starting Mongodb Atlas"
+           atlascli --publickey $ATLAS_PUBLIC_KEY --privatekey $ATLAS_PRIVATE_KEY --project_id 61785c7271cd415675fbbf72 --resume qa-prime-db-aws           
+           echo "Mongodb Atlas is Running"
+           sleep 20s;
+           aws ec2 start-instances --instance-ids i-07268b6e3e7e5c427
+           aws ec2 start-instances --instance-ids i-0273a278a54fcef61
+           echo "Apps Instance is Running"
+
+           ssh insider-kong 'docker start qa-prime-kong'
+           echo "KONG Instance is Running"
+           sleep 20s;
+          echo "Qa-prime is up now"
+          ssh qa-prime1 'cd /home/ubuntu/
+          aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 607531355752.dkr.ecr.us-east-1.amazonaws.com'
+          ssh qa-prime2 'cd /home/ubuntu/
+          aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 607531355752.dkr.ecr.us-east-1.amazonaws.com'
+	
+		;;
+        
+      *) ;;
+      
+  esac    
+
+
+
+
+
+
+

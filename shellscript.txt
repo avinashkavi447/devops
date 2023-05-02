@@ -15,3 +15,69 @@ echo -e "one\t\t\ttwo"
 ## colour colour enabling in echo will be done by \e
 echo -e "\e[31m content"
 done
+
+
+#!/bin/bash
+
+
+ case $STATE in
+	STOP)  
+           status=$(aws ec2 describe-instance-status --instance-id i-0bce070f179809219|grep -wc 'running')
+           running=1
+           if [[ "$running" == "$status" || "$running" == "$mongo" ]]
+           then 
+            {
+             echo "Stopping KONG Instance"
+             ssh insider-kong 'docker stop staging-kong'
+             echo "KONG is stopped"
+             
+             echo "Stopping Mongodb Instance"
+             #ssh staging "atlascli --publickey $ATLAS_PUBLIC_KEY --privatekey $ATLAS_PRIVATE_KEY --project_id 61ba4733199e2a6e0971e9eb --pause staging-db-aws"
+             ssh staging 'cd /home/ubuntu/ 
+             atlas clusters pause staging-db-aws'
+             echo "Mongodb Instance is stopped"
+       
+             echo "Stopping Apps Instance"
+             aws ec2 stop-instances --instance-ids i-0bce070f179809219
+             echo "Apps Instance is stopped"
+            }
+           else
+            echo "Instances are not running to stop"    
+           fi
+          
+		;; 
+  START)   echo "Starting Apps Instance"
+           aws ec2 start-instances --instance-ids i-0bce070f179809219
+           echo "Apps Instance is Running"
+           sleep 1m;
+
+           echo "Starting Mongodb Instance"
+           #ssh staging "atlascli --publickey $ATLAS_PUBLIC_KEY --privatekey $ATLAS_PRIVATE_KEY --project_id 61ba4733199e2a6e0971e9eb --resume staging-db-aws"
+           ssh staging 'cd /home/ubuntu/ 
+           atlas clusters start staging-db-aws'
+           echo "Mongodb Instance is Running"
+           sleep 5m;
+           
+           ssh staging "sudo service docker restart"
+           sleep 1m;
+           
+           echo "Starting Kong Apps Instance"
+           ssh insider-kong 'docker start staging-kong'
+           echo "KONG is Running"
+
+           echo "Staging is up now"
+           ssh staging 'cd /home/ubuntu/ 
+           aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 607531355752.dkr.ecr.us-east-1.amazonaws.com'
+           
+           ;;
+        
+      *) ;;
+      
+  esac 
+
+
+
+ 
+
+
+

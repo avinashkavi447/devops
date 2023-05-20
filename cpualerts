@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# Set the threshold values for CPU, memory, and disk usage
+cpu_threshold=90   # CPU usage threshold (percentage)
+mem_threshold=90   # Memory usage threshold (percentage)
+disk_threshold=90  # Disk usage threshold (percentage)
+
+# Get the current CPU usage percentage
+cpu_usage=$(top -bn1 | awk '/%Cpu/ {print 100 - $8}' | cut -d. -f1)
+
+# Get the current memory usage percentage
+mem_usage=$(free | awk '/Mem:/ {print $3/$2 * 100}' | cut -d. -f1)
+
+# Get the current disk usage percentage
+disk_usage=$(df -h / | awk '/\// {print $5}' | tr -d '%')
+
+# Check CPU usage
+if [ "$cpu_usage" -ge "$cpu_threshold" ]; then
+    alert_message="High CPU usage: ${cpu_usage}%"
+    echo "$alert_message"
+    # Add your alert mechanism here (e.g., sending an email, notifying a monitoring system)
+fi
+
+# Check memory usage
+if [ "$mem_usage" -ge "$mem_threshold" ]; then
+    alert_message="High memory usage: ${mem_usage}%"
+    echo "$alert_message"
+    # Add your alert mechanism here
+fi
+
+# Check disk usage
+if [ "$disk_usage" -ge "$disk_threshold" ]; then
+    alert_message="High disk usage: ${disk_usage}%"
+    echo "$alert_message"
+    # Add your alert mechanism here
+fi

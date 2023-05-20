@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# Define the server hostname and port
+server_host="example.com"
+server_port="80"
+
+# Ping the server and check the response
+ping_response=$(ping -c 1 $server_host | grep "1 packets transmitted, 1 received")
+
+# Check if the server is reachable
+if [ -n "$ping_response" ]; then
+    # The server is reachable, check if the specific port is open
+    nc -z $server_host $server_port
+    if [ $? -eq 0 ]; then
+        echo "Server is running"
+    else
+        echo "Server is not responding on port $server_port"
+    fi
+else
+    echo "Server is unreachable"
+fi

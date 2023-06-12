@@ -1,0 +1,1 @@
+for file in /proc/*/status ; do awk '/VmSwap|Name|Pid/{printf $2 " " $3 " " $4}END{ print ""}' $file; done | sort -k 5 -n -r | less
